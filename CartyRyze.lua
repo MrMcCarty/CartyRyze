@@ -27,11 +27,10 @@ local Qradius = 50
 local Wrange = 600
 local Erange = 600
 local AArange = 550
-local test = nil
 local SpellRange = {Range = Qrange, Speed = Qspeed, Delay = Qdelay, Width = Qradius}
 
 --Version
-local ScriptVersion = 0.02
+local ScriptVersion = 0.01
 local autoUpdate = true
 
 
@@ -77,7 +76,7 @@ function OnLoad( ... )
 	Menu()
 	HookPackets()
 	--Chat Print
-	print("CartyRyze Beta version" .. ScriptVersion .. "")
+	print("CartyRyze Beta version: v" .. ScriptVersion .. "")
 end
 
 function Libry( ... )
