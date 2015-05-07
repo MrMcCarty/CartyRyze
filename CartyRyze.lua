@@ -41,7 +41,7 @@ if autoUpdate == true then
 		ServerVersion = tonumber(ServerResult)
 		if ScriptVersion < ServerVersion then
 			print("A new version is available: v"..ServerVersion..". Attempting to download now.")
-			DelayAction(function() DownloadFile("https://raw.githubusercontent.com/MrMcCarty/CartyRyze/master/CartyRyze.lua".."?rand"..math.random(1,9999), SCRIPT_PATH.."Srexi Ryze.lua", function() print("Successfully downloaded the latest version: v"..ServerVersion..".") end) end, 2)
+			DelayAction(function() DownloadFile("https://raw.githubusercontent.com/MrMcCarty/CartyRyze/master/CartyRyze.lua".."?rand"..math.random(1,9999), SCRIPT_PATH.."CartyRyze.lua", function() print("Successfully downloaded the latest version: v"..ServerVersion..".") end) end, 2)
 		else
 			print("You are running the latest version: v"..ScriptVersion..".")
 		end
