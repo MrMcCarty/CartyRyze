@@ -27,10 +27,11 @@ local Qradius = 50
 local Wrange = 600
 local Erange = 600
 local AArange = 550
+local test = nil
 local SpellRange = {Range = Qrange, Speed = Qspeed, Delay = Qdelay, Width = Qradius}
 
 --Version
-local ScriptVersion = 0.01
+local ScriptVersion = 0.02
 
 
 AddLoadCallback(function()
