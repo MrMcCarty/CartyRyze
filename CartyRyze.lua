@@ -32,6 +32,7 @@ local SpellRange = {Range = Qrange, Speed = Qspeed, Delay = Qdelay, Width = Qrad
 
 --Version
 local ScriptVersion = 0.02
+local autoUpdate = true
 
 
 AddLoadCallback(function()
