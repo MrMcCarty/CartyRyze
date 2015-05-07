@@ -49,7 +49,7 @@ if autoUpdate == true then
 		print("Error finding server version.")
 	end
 	else
-	PrinChat("Autoupdate disabled! Your version: " .. ScriptVersion .. ".")
+	print("Autoupdate disabled! Your version: " .. ScriptVersion .. ".")
 end
 end)
 
@@ -76,7 +76,7 @@ function OnLoad( ... )
 	Menu()
 	HookPackets()
 	--Chat Print
-	PrintChat("CartyRyze Beta version 0.01")
+	PrintChat("CartyRyze Beta version" .. ScriptVersion .. "")
 end
 
 function Libry( ... )
