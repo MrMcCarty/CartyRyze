@@ -76,7 +76,7 @@ function OnLoad( ... )
 	Menu()
 	HookPackets()
 	--Chat Print
-	PrintChat("CartyRyze Beta version" .. ScriptVersion .. "")
+	print("CartyRyze Beta version" .. ScriptVersion .. "")
 end
 
 function Libry( ... )
