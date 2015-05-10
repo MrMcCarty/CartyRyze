@@ -11,10 +11,16 @@ local shop = GetShop()
 local isrecalling = false
 local holdpos = false
 local EnemyMinions = minionManager(MINION_ENEMY, 1200, myHero, MINION_SORT_HEALTH_DEC)
+local AllyMinions = minionManager(MINION_ALLY, 1200, myHero, MINION_SORT_HEALTH_DEC)
+local EnemyMinions2 = minionManager(MINION_ENEMY, 550, myHero, MINION_SORT_HEALTH_DEC)
+local lastminion = minionManager(MINION_ENEMY, 550, myHero, MINION_SORT_HEALTH_DEC)
 local miniondraw = nil
 local hastears = false
 local tearsslot = 1
 local Ultion = false
+local stopAA = false
+local lastminioncount = 0
+local minionprio = false
 
 --AutoLevel Sequence
 local RyzeLevel = {_E,_Q,_W,_E,_E,_R,_E,_Q,_E,_Q,_R,_Q,_Q,_W,_W,_R,_W,_W}
@@ -41,7 +47,7 @@ if autoUpdate == true then
 		ServerVersion = tonumber(ServerResult)
 		if ScriptVersion < ServerVersion then
 			print("A new version is available: v"..ServerVersion..". Attempting to download now.")
-			DelayAction(function() DownloadFile("https://raw.githubusercontent.com/MrMcCarty/CartyRyze/master/CartyRyze.lua".."?rand"..math.random(1,9999), SCRIPT_PATH.."CartyRyze.lua", function() print("Successfully downloaded the latest version: v"..ServerVersion..".") end) end, 2)
+			DelayAction(function() DownloadFile("https://raw.githubusercontent.com/MrMcCarty/CartyRyze/master/CartyRyze.lua".."?rand"..math.random(1,9999), SCRIPT_PATH..debug.getinfo( 1, "S" ).source, function() print("Successfully downloaded the latest version: v"..ServerVersion..".") end) end, 2)
 		else
 			print("You are running the latest version: v"..ScriptVersion..".")
 		end
@@ -89,7 +95,7 @@ function OnDraw( ... )
 	if not (myHero.dead) then
 
 				for i, miniondraw in pairs(EnemyMinions.objects) do
-	local AAdrawdmg = getDmg("AD", miniondraw, myHero)
+	local AAdrawdmg = getDmg("AD", miniondraw, myHero) - 1
 	if miniondraw.health <= AAdrawdmg then
 if miniondraw ~= nil and not miniondraw.dead and Config.draw.drawminion then
 	for j = 60, 63 do
@@ -139,9 +145,21 @@ end
 function Vars( ... )
 	-- body
 	ts:update()
+	AllyMinions:update()
 	EnemyMinions:update()
+	EnemyMinions2:update()
 	myHero = GetMyHero()
 	target = ts.target
+
+	--AllyMinion Count
+		for i, Minion in pairs(AllyMinions.objects) do
+	if i >= lastminioncount then
+		lastminioncount = i
+	end
+	if not ValidTarget(Minion) then
+		lastminioncount = lastminioncount - 1
+	end
+	end
 
 	--Functions update
 		if Config.autoL.usel then
@@ -160,6 +178,12 @@ end
 			moveToCursor()
 end
 	Farm()
+end
+if(Config.Key.keyfarm2) then
+		if heroCanMove() then
+			moveToCursor()
+end
+	Farm2()
 end
 	if(Config.Key.keycombo) then
 		if heroCanMove() then
@@ -278,7 +302,8 @@ function Combo( ... )
 				CastSpell(_R)
 			 end
 			end
-			if not Qr and not Wr and not Er and GetDistance(ts.target) <= AArange then
+			if not Qr and not Wr and not Er and GetDistance(ts.target) <= AArange and timeToShoot() then
+				lastAttack = GetTime() +  GetLatency()/2000
 				myHero:Attack(ts.target)
 			end
 	end
@@ -348,8 +373,8 @@ end
 function Farm( ... )
 	-- body
 	for i, minion in pairs(EnemyMinions.objects) do
-			local qdmgmin = getDmg("Q", minion, myHero)
-			local AAdmg = getDmg("AD", minion, myHero)
+			local qdmgmin = getDmg("Q", minion, myHero) - 5
+			local AAdmg = getDmg("AD", minion, myHero) - 1
 			local castPosmin, HitChance, Position = VP:GetLineCastPosition(minion, 0.46, 50, 900, 1400, myHero, true)
 			if isrecalling == false then
 						if Qr and Config.Fmr.farmmode == 2 then
@@ -367,19 +392,68 @@ function Farm( ... )
 		end
 		end
 		if not Qr then
-		if minion ~= nil and not minion.dead and minion.visible and minion.health <= AAdmg and GetDistance(minion) <= AArange and ValidTarget(minion) then 
+		if minion ~= nil and not minion.dead and minion.visible and minion.health <= AAdmg and timeToShoot() and GetDistance(minion) <= AArange and ValidTarget(minion) then 
+			lastAttack = GetTime() +  GetLatency()/2000
 			myHero:Attack(minion)
 		end
 end
 						if Qr then
 	if (castPosmin ~= nil and GetDistance(castPosmin)<SpellRange.Range and HitChance < 0) then
-				if minion ~= nil and not minion.dead and minion.visible and minion.health <= AAdmg and GetDistance(minion) <= AArange and ValidTarget(minion) then
+				if minion ~= nil and not minion.dead and minion.visible  and minion.health <= AAdmg and timeToShoot() and GetDistance(minion) <= AArange and ValidTarget(minion) then
+					lastAttack = GetTime() +  GetLatency()/2000
 					myHero:Attack(minion)
 				end
 			end
 		end
+			if minion ~= nil and Config.Fmr.farmmode == 1 and not minion.dead and minion.visible and timeToShoot() and GetDistance(minion) <= AArange and minion.health <= AAdmg and ValidTarget(minion) then
+					lastAttack = GetTime() +  GetLatency()/2000
+					myHero:Attack(minion)
+				end
+					if minion ~= nil and Config.Fmr.farmmode == 3 and not hastears and not minion.dead and minion.visible and timeToShoot() and GetDistance(minion) <= AArange and minion.health <= AAdmg and ValidTarget(minion) then
+					lastAttack = GetTime() +  GetLatency()/2000
+					myHero:Attack(minion)
+					print("SHOT")
+				end
 	end
 	end
+end
+
+function Farm2( ... )
+	-- body
+	for i, minion2 in pairs(EnemyMinions2.objects) do
+			local qdmgmin = getDmg("Q", minion2, myHero) - 5
+			local AAdmg = getDmg("AD", minion2, myHero) - 1
+			if minion2.health <= AAdmg and ValidTarget(minion2) then
+				minionprio = true
+			else
+				minionprio = false
+			end
+			if minion2.health <= AAdmg *2.5 or minion2.health <= AAdmg then
+				stopAA = true
+				lastminion = minion2
+			end
+			if lastminion.dead or not ValidTarget(lastminion) or GetDistance(lastminion) > 600 or lastminion == nil then
+				stopAA = false
+			end
+
+
+			
+			if isrecalling == false then
+
+if minion2 ~= nil  and not minion2.dead and minion2.visible and timeToShoot() and minion2.health <= AAdmg and ValidTarget(minion2) then
+					lastAttack = GetTime() +  GetLatency()/2000
+					myHero:Attack(minion2)
+				end
+				if minion2 ~= nil  and not minion2.dead and minion2.visible and timeToShoot() and minion2.health > AAdmg *2.5 and not stopAA and ValidTarget(minion2) then
+					lastAttack = GetTime() +  GetLatency()/2000
+					myHero:Attack(minion2)
+		end
+		if minion2 ~= nil  and not minion2.dead and minion2.visible and timeToShoot() and lastminioncount == 0 and not minionprio and ValidTarget(minion2) then
+					lastAttack = GetTime() +  GetLatency()/2000
+					myHero:Attack(minion2)
+				end
+end
+end
 end
 
 
@@ -389,6 +463,7 @@ function Menu( ... )
 	Config:addSubMenu("Keys", "Key")
 Config.Key:addParam("keycombo", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, string.byte(" "))
 Config.Key:addParam("keyfarm", "Farm", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("F"))
+Config.Key:addParam("keyfarm2", "Push Farm", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("H"))
 
 Config:addSubMenu("Combo", "Cmo") 
 Config.Cmo:addParam("useq", "Use Q", SCRIPT_PARAM_ONOFF, true)
@@ -424,20 +499,35 @@ end
 function OnProcessSpell(object, spell)
 	if object == myHero then
 		if spell.name:lower():find("attack") then 
-			lastAttack = GetTickCount() - GetLatency()/2
-			lastWindUpTime = spell.windUpTime*1000
-			lastAttackCD = spell.animationTime*1000
+			lastAttack = GetTime() - GetLatency()/2000
+			lastWindUpTime = spell.windUpTime
+			lastAttackCD = spell.animationTime
+		end
+			if spell.name:lower():find("RyzeBasicAttack") then 
+			lastAttack = GetTime() - GetLatency()/2000
+			lastWindUpTime = spell.windUpTime
+			lastAttackCD = spell.animationTime
+		end
+			if spell.name:lower():find("RyzeBasicAttack1") then 
+			lastAttack = GetTime() - GetLatency()/2000
+			lastWindUpTime = spell.windUpTime
+			lastAttackCD = spell.animationTime
+		end
+			if spell.name:lower():find("RyzeBasicAttack2") then 
+			lastAttack = GetTime() - GetLatency()/2000
+			lastWindUpTime = spell.windUpTime
+			lastAttackCD = spell.animationTime
 		end 
 	end
 end
 
 
 function heroCanMove()
-	return (GetTickCount() + GetLatency()/2 > lastAttack + lastWindUpTime + 120)
+	return (GetTime() + GetLatency()/2000 > lastAttack + WindUpTime() )
 end 
  
 function timeToShoot()
-	return (GetTickCount() + GetLatency()/2 > lastAttack + lastAttackCD)
+	return (GetTime() + GetLatency()/2000 > lastAttack + AnimationTime())
 end 
  
 function moveToCursor()
@@ -445,4 +535,15 @@ function moveToCursor()
 		local moveToPos = myHero + (Vector(mousePos) - myHero):normalized()* (300 + GetLatency())
 		myHero:MoveTo(moveToPos.x, moveToPos.z)
 	end 
+end
+
+function GetTime()
+	return os.clock()
+end
+function AnimationTime()
+	return (1 / (myHero.attackSpeed * 0.65))
+end
+
+function WindUpTime(exact)
+	return (1 / (myHero.attackSpeed * 3)) + (exact and 0 or 50 / 1000)
 end
