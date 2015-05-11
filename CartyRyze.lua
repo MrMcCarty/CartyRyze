@@ -412,7 +412,6 @@ end
 					if minion ~= nil and Config.Fmr.farmmode == 3 and not hastears and not minion.dead and minion.visible and timeToShoot() and GetDistance(minion) <= AArange and minion.health <= AAdmg and ValidTarget(minion) then
 					lastAttack = GetTime() +  GetLatency()/2000
 					myHero:Attack(minion)
-					print("SHOT")
 				end
 	end
 	end
@@ -423,6 +422,7 @@ function Farm2( ... )
 	for i, minion2 in pairs(EnemyMinions2.objects) do
 			local qdmgmin = getDmg("Q", minion2, myHero) - 5
 			local AAdmg = getDmg("AD", minion2, myHero) - 1
+			local castPosmin, HitChance, Position = VP:GetLineCastPosition(minion2, 0.46, 50, 900, 1400, myHero, true)
 			if minion2.health <= AAdmg and ValidTarget(minion2) then
 				minionprio = true
 			else
@@ -439,7 +439,20 @@ function Farm2( ... )
 
 			
 			if isrecalling == false then
-
+						if Qr and Config.Fmr.farmmode == 2 then
+	if (castPosmin ~= nil and GetDistance(castPosmin)<SpellRange.Range and HitChance > 0) then
+				if minion2 ~= nil and not minion2.dead and minion2.visible and minion2.health <= qdmgmin and ValidTarget(minion2) then
+		CastSpell(_Q, castPosmin.x, castPosmin.z)
+		end
+		end
+		end
+										if Qr and Config.Fmr.farmmode == 3 and hastears then
+	if (castPosmin ~= nil and GetDistance(castPosmin)<SpellRange.Range and HitChance > 0) then
+				if minion2 ~= nil and not minion2.dead and minion2.visible and minion2.health <= qdmgmin and ValidTarget(minion2) then
+		CastSpell(_Q, castPosmin.x, castPosmin.z)
+		end
+		end
+		end
 if minion2 ~= nil  and not minion2.dead and minion2.visible and timeToShoot() and minion2.health <= AAdmg and ValidTarget(minion2) then
 					lastAttack = GetTime() +  GetLatency()/2000
 					myHero:Attack(minion2)
@@ -471,7 +484,7 @@ Config.Cmo:addParam("usew", "Use W", SCRIPT_PARAM_ONOFF, true)
 Config.Cmo:addParam("usee", "Use E", SCRIPT_PARAM_ONOFF, true)
 Config.Cmo:addParam("user", "Use R", SCRIPT_PARAM_ONOFF, true)
 
-Config:addSubMenu("Farm", "Fmr") 
+Config:addSubMenu("Farm/Push", "Fmr") 
 Config.Fmr:addParam("farmmode", "Use Q Mode", SCRIPT_PARAM_LIST, 3, { "No Cast", "Always", "Only with Tears"})
 
 Config:addSubMenu("Auto Ignite", "autoI") 
